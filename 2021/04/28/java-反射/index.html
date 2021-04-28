@@ -5,14 +5,14 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> - Hexo</title>
+    <title>java--反射 - Hexo</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="java安全-反射要学的东西太多，但是时间却不够了,由于我也是第一次学，希望有错误的地方能有大佬给纠正
+    <meta name="description" content="反射要学的东西太多，但是时间却不够了,由于我也是第一次学，希望有错误的地方能有大佬给纠正
 需要了解到这几个函数
-1234获取类的⽅法： forName实例化类对象的⽅法： newIns,"> 
+1234获取类的⽅法： forName实例化类对象的⽅法： newInstance获取,"> 
     <meta name="author" content="John Doe"> 
     <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.png"> 
@@ -40,7 +40,7 @@ color="220,220,220" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com
     <div class="bar" style="width: 0;"></div>
     <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://example.com"></a>
     <div title="播放/暂停" class="iconfont icon-play"></div>
-    <h3 class="subtitle"></h3>
+    <h3 class="subtitle">java--反射</h3>
     <div class="social">
         <div>
             <div class="share">
@@ -55,14 +55,14 @@ color="220,220,220" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com
     <div class="section">
         <div class="article">
     <div class='main'>
-        <h1 class="title"></h1>
+        <h1 class="title">java--反射</h1>
         <div class="stuff">
-            <span>二月 16, 2021</span>
+            <span>四月 28, 2021</span>
             
 
         </div>
         <div class="content markdown">
-            <h1 id="java安全"><a href="#java安全" class="headerlink" title="java安全-"></a>java安全-</h1><h2 id="反射"><a href="#反射" class="headerlink" title="反射"></a>反射</h2><p>要学的东西太多，但是时间却不够了,由于我也是第一次学，希望有错误的地方能有大佬给纠正</p>
+            <h2 id="反射"><a href="#反射" class="headerlink" title="反射"></a>反射</h2><p>要学的东西太多，但是时间却不够了,由于我也是第一次学，希望有错误的地方能有大佬给纠正</p>
 <p>需要了解到这几个函数</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">获取类的⽅法： forName</span><br><span class="line">实例化类对象的⽅法： newInstance</span><br><span class="line">获取函数的⽅法： getMethod</span><br><span class="line">执⾏函数的⽅法： invoke</span><br></pre></td></tr></table></figure>
 
@@ -138,7 +138,6 @@ color="220,220,220" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com
 <p>随便选一个</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class clazz &#x3D; Class.forName(&quot;java.lang.ProcessBuilder&quot;); clazz.getMethod(&quot;start&quot;).invoke(clazz.getConstructor(String.class).newInstance( &quot;calc.exe&quot;));</span><br></pre></td></tr></table></figure>
 
-<p>如果有什么错误的地方希望大神能够指点我一下，嘻嘻嘻嘻</p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
