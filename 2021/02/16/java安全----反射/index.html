@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="en" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="java安全-反射要学的东西太多，但是时间却不够了,由于我也是第一次学，希望有错误的地方能有大佬给纠正
+需要了解到这几个函数
+1234获取类的⽅法： forName实例化类对象的⽅法： newIns,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<!--动态线条背景-->
+<script type="text/javascript"
+color="220,220,220" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js">
+</script>
+
+<canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+<!--浏览器搞笑标题-->
+<script type="text/javascript" src="/js/FunnyTitle.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+<script type="text/javascript" src="/js/fireworks.js"></script>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://example.com"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle"></h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title"></h1>
+        <div class="stuff">
+            <span>二月 16, 2021</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h1 id="java安全"><a href="#java安全" class="headerlink" title="java安全-"></a>java安全-</h1><h2 id="反射"><a href="#反射" class="headerlink" title="反射"></a>反射</h2><p>要学的东西太多，但是时间却不够了,由于我也是第一次学，希望有错误的地方能有大佬给纠正</p>
+<p>需要了解到这几个函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">获取类的⽅法： forName</span><br><span class="line">实例化类对象的⽅法： newInstance</span><br><span class="line">获取函数的⽅法： getMethod</span><br><span class="line">执⾏函数的⽅法： invoke</span><br></pre></td></tr></table></figure>
+
+<p>一般来说最简单的形式就是这个样子的</p>
+<p><code>Class c = Class.forName(className); c.getMethod(methodName).invoke(c.newInstance());</code></p>
+<p>但实际上在真实的生活中往往需要绕过各式各样的东西</p>
+<p>在这里需要说一下在类的运行时</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">class A&#123;</span><br><span class="line">    public A()&#123;</span><br><span class="line">        System.out.println(&quot;A&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static &#123;</span><br><span class="line">        System.out.println(&quot;B&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(&quot;C&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先调用的是static,其次是{},最后是构造函数，也就是BCA</p>
+<p>static在类初始化的时候就会调用,{}是在构造函数的super()之后</p>
+<p>所以在forName对类进行初始化的时候实际上会调用static模块</p>
+<p>java在普通类的class_1中如果你在后面接着定义了一个class_2类，会生成class_1.class和class_1$class_2.class</p>
+<p>所以该怎么利用呢？</p>
+<p>如果有一个函数里面如果有一个这个语句</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class.forName(class);</span><br></pre></td></tr></table></figure>
+
+<p>这个时候我们可以控制其中的class，那么我们就可以自己编写一个恶意类，将恶意代码放在static模块下面</p>
+<p>在使用这个方法的时候我们就已经获得了一个类了，接下来我们要获得它里面的东西了</p>
+<p>class.newInstance()可以调用类的无参构造函数。但是如果类是私有的就会报错</p>
+<p>如果想要调用私有类就不能使用这个函数了，我们因该用class.getMethod来调用这个私有类中的静态函数去调用这个私有类的构造函数（这里可能有点绕），因为一般私有类都会有一个静态函数实现相应的功能</p>
+<p>在将这个之前我要说一下两个函数<code>getMEthod</code>和<code>invoke</code></p>
+<p><code>getMethod</code>的作用是通过反射获取一个类的某个特定的共有方法，因为java中类可能会有很多重载，我们没有办法通过函名儿去确定一个函数，所以需要传递一个函数参数类型的列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">method(String str)&#x3D;&gt;class.getMethod(&quot;method&quot;,String.class)</span><br><span class="line">method(String[] strN)&#x3D;&gt;class.getMethod(&quot;method&quot;,String[].class)</span><br></pre></td></tr></table></figure>
+
+<p>举个例子<code>java.lang.Runtime</code>就是一个私有类，在调用这个私有类的构造函数的时候不能直接</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Class clazz &#x3D; Class.forName(&quot;java.lang.Runtime&quot;);</span><br><span class="line">clazz.getMethod(&quot;exec&quot;, String.class).invoke(clazz.newInstance(), &quot;id&quot;);</span><br></pre></td></tr></table></figure>
+
+<p><code>invoke</code>的作用是执行方法，一般紧跟着getMethod使用</p>
+<p>我们应该利用<code>getMethod</code>函数去获得这个类的<code>Runtime.getRuntime()</code>方法来获得对象</p>
+<p>所以这个<code>payload</code>可以改成</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Class c &#x3D; Class.forName(&quot;java.lang.Runtime&quot;);</span><br><span class="line">c.getMethod(&quot;exec&quot;, String.class).invoke(c.getMethod(&quot;getRuntime&quot;).innoke(c), &quot;id&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>这个<code>payload</code>可以一步一步的去看</p>
+<p>第一步获得<code>java.lang.Runtime</code>类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class c &#x3D; Class.forName(&quot;java.lang.Runtime&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>第二步获得我们想要执行的<code>exec</code>方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Method method &#x3D; c.getMethod(&quot;exec&quot;,String.class);</span><br></pre></td></tr></table></figure>
+
+<p>第三步获得我们这个类的对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">method  getObject &#x3D; c.getMethod(&quot;getRuntime&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>第四步实现第三步</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Object run&#x3D; getObject.invoke(c);</span><br></pre></td></tr></table></figure>
+
+<p>第五步实现我们的<code>payload</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">method.invoke(run,&quot;id&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>在这之前我们说过一个问题：类是私有类的时候不能直接使用newInstance()来获取无参构造函数，用getMethod去调用它的方法,那如果方法是私有的怎么办？</p>
+<p>那就是使用<code>getDeclared</code>系列的反射</p>
+<p>继续上面的例子</p>
+<p>我们不用<code>getMethod</code>去获得<code>getRuntime</code>我们直接用<code>getDclaredConstructor</code>来获取私方法</p>
+<p>它的使用方法和getMethod类似，不过需要使用<code>setAccessible</code>来修改作用域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Class c &#x3D; Class.forName(&quot;java.lang.Runtime&quot;);</span><br><span class="line">Constructor gouzao &#x3D; c.getDeclaredConstructor():</span><br><span class="line">gouzao.setAccessible(true);</span><br><span class="line">c.getMethod(&quot;exec&quot;,String.class).invoke(gouzo.newInstance(),&quot;id&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>如果我们要获得有参的构造函数呢</p>
+<p>那就是用<code>getConstructor</code>是不是与上面的玩意儿很眼熟我去百度了一波他们的区别</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">getMethod 系列方法获取的是当前类中所有公共方法，包括从父类继承的方法 getDeclaredMethod 系列方法获取的是当前类中“声明”的方法，是实在写在这个类里的，包括私 有的方法，但从父类里继承来的就不包含了</span><br></pre></td></tr></table></figure>
+
+<p><code>getConstructor</code>与<code>getDeclaredConstructor</code>也类似</p>
+<p>我先创建一个类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">package DG</span><br><span class="line">public class test &#123;</span><br><span class="line">    private int age;</span><br><span class="line">    private String name;</span><br><span class="line"> </span><br><span class="line">    public test( String name,int age) &#123;</span><br><span class="line">        this.age &#x3D; age;</span><br><span class="line">        this.name &#x3D; name;</span><br><span class="line">        System.out.println(&quot;有参数&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    public test() &#123;</span><br><span class="line">        System.out.println(&quot;无参数&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们再去获得有参构造函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Class cl&#x3D;Class.forName(&quot;DG.test&quot;);</span><br><span class="line">     </span><br><span class="line">Constructor con&#x3D;cl.getConstructor(String.class,int.class);</span><br><span class="line">Object obj&#x3D;con.newInstance(&quot;DG&quot;,19);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>最终回显为“有参数”</p>
+<p>再看看我们常用的另一个有命令执行的类<code>ProcessBuilder</code></p>
+<p>它的构造函数有两个</p>
+<p>一个的参数是<code>List&lt;String&gt; command</code></p>
+<p>另一个是<code>String command</code></p>
+<p>随便选一个</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class clazz &#x3D; Class.forName(&quot;java.lang.ProcessBuilder&quot;); clazz.getMethod(&quot;start&quot;).invoke(clazz.getConstructor(String.class).newInstance( &quot;calc.exe&quot;));</span><br></pre></td></tr></table></figure>
+
+<p>如果有什么错误的地方希望大神能够指点我一下，嘻嘻嘻嘻</p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://link.hhtjim.com/163/425570952.mp3'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='http://link.hhtjim.com/163/425570952.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='false'
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+</html>

